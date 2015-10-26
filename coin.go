@@ -2,7 +2,7 @@ package main
 
 import (
 	//"encoding/hex"
-	"github.com/tsileo/blkparser"
+	"github.com/Lefkok/blkparser"
 	"log"
 	"os"
 )
@@ -19,7 +19,7 @@ func main() {
 
 	Magic := [4]byte{0xF9, 0xBE, 0xB4, 0xD9}
 
-	Chain, _ := blkparser.NewBlockchain("/home/user/work/blocks", Magic)
+	Chain, _ := blkparser.NewBlockchain("/home/lefteris/hi/blocks", Magic)
 
 	first_block := 76500
 	last_block := 76546
