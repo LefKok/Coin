@@ -1,6 +1,11 @@
 package BitCoSi
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"github.com/dedis/cothority/lib/hashid"
+	"github.com/dedis/cothority/lib/proof"
 	"log"
 	"net"
 )
@@ -39,12 +44,25 @@ func NewHeader(transactions TransactionList, parent string, IP net.IP, key strin
 	return *hdr
 }
 
-func calculate_root(transactions TransactionList) (s string) {
-	return transactions.Txs[0].Hash
+func calculate_root(transactions TransactionList) (res string) {
+	var hashes []hashid.HashId
+
+	for _, t := range transactions.Txs {
+		temp, _ := hex.DecodeString(t.Hash)
+		hashes = append(hashes, temp)
+	}
+	out, _ := proof.ProofTree(sha256.New, hashes)
+	res = hex.EncodeToString(out)
+	return
 }
 
-func hash(h Header) (s string) {
-	return h.Parent + "1"
+func hash(h Header) (res string) {
+	data := fmt.Sprintf("%v", h)
+	sha := sha256.New()
+	sha.Write([]byte(data))
+	hash := sha.Sum(nil)
+	res = hex.EncodeToString(hash)
+	return
 
 }
 

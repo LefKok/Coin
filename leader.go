@@ -1,51 +1,67 @@
 package main
 
 import (
-	"github.com/LefKok/Coin"
+	"errors"
+	"github.com/LefKok/Coin/BitCoSi"
+	"github.com/LefKok/Coin/blkparser"
 	"log"
+	"net"
 )
 
+type Node struct {
+	IP               net.IP
+	PublicKey        string
+	Last_Block       string
+	transaction_pool []blkparser.Tx
+}
+
 func main() {
-
+	Current := new(Node)
 	Magic := [4]byte{0xF9, 0xBE, 0xB4, 0xD9}
+	Current.IP = net.IPv4(0, 1, 2, 3)
+	Current.PublicKey = "my_cool_key"
+	Current.Last_Block = "0"
+	Parser, _ := BitCoSi.NewParser("/home/lefteris/hi/blocks", Magic)
+	Current.transaction_pool = Parser.Parse(0, 2)
+	var err error
+	var trblock BitCoSi.TrBlock
 
-	Parser, _ := Coin.NewParser("/home/lefteris/hi/blocks", Magic)
-
-	transaction := Parser.parse(0, 10)
-
-	for _, tx := range transactions {
-
-		log.Printf("TxId: %v", tx.Hash)
-		//log.Printf("Tx Size: %v", tx.Size)
-		//log.Printf("Tx Lock time: %v", tx.LockTime)
-		//log.Printf("Tx Version: %v", tx.Version)
-
-		log.Println("TxIns:")
-		if tx.TxInCnt == 1 && tx.TxIns[0].InputVout == 4294967295 {
-			log.Printf("TxIn coinbase, newly generated coins")
+	for len(Current.transaction_pool) > 0 {
+		trblock, err = getblock(Current, 2)
+		if err != nil {
+			log.Println(err)
 		} else {
-			for txin_index, txin := range tx.TxIns {
-				log.Printf("TxIn index: %v", txin_index)
-				log.Printf("TxIn Input_Hash: %v", txin.InputHash)
-				log.Printf("TxIn Input_Index: %v", txin.InputVout)
-
-				//		log.Printf("TxIn ScriptSig: %v", hex.EncodeToString(txin.ScriptSig))
-				//	log.Printf("TxIn Sequence: %v", txin.Sequence)
-			}
-		}
-
-		log.Println("TxOuts:")
-
-		for txo_index, txout := range tx.TxOuts {
-			log.Printf("TxOut index: %v", txo_index)
-			log.Printf("TxOut value: %v", txout.Value)
-			//	log.Printf("TxOut script: %s", hex.EncodeToString(txout.Pkscript))
-			txout_addr := txout.Addr
-			if txout_addr != "" {
-				log.Printf("TxOut address: %v", txout_addr)
-			} else {
-				log.Printf("TxOut address: can't decode address")
-			}
+			trblock.Print()
 		}
 	}
+
+	trblock, err = getblock(Current, 2)
+	if err != nil {
+		log.Println(err)
+	} else {
+		trblock.Print()
+	}
+
+	trblock, err = getblock(Current, 2)
+	if err != nil {
+		log.Println(err)
+	} else {
+		trblock.Print()
+	}
+
+}
+
+func getblock(l *Node, n int) (_ BitCoSi.TrBlock, _ error) {
+	if len(l.transaction_pool) > 0 {
+
+		trlist := BitCoSi.NewTransactionList(l.transaction_pool, n)
+		header := BitCoSi.NewHeader(trlist, l.Last_Block, l.IP, l.PublicKey)
+		trblock := BitCoSi.NewTrBlock(trlist, header)
+		l.transaction_pool = l.transaction_pool[trblock.TransactionList.TxCnt:]
+		l.Last_Block = trblock.HeaderHash
+		return trblock, nil
+	} else {
+		return *new(BitCoSi.TrBlock), errors.New("no transaction available")
+	}
+
 }
