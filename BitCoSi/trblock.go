@@ -57,6 +57,7 @@ func calculate_root(transactions TransactionList) (res string) {
 }
 
 func hash(h Header) (res string) {
+	//change it to be more portable
 	data := fmt.Sprintf("%v", h)
 	sha := sha256.New()
 	sha.Write([]byte(data))
