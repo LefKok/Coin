@@ -23,7 +23,6 @@ type Client struct {
 	PublicKey        string
 	Last_Block       string
 	transaction_pool []blkparser.Tx
-	//mux              sync.Mutex
 }
 
 func main() {
@@ -132,7 +131,7 @@ func (c *Client) wait_for_blocks() {
 
 func (c *Client) verify_and_store(block BitCoSi.TrBlock) bool {
 
-	return block.Header.Parent == c.Last_Block && block.Header.MerkleRoot == c.calculate_root(block.TransactionList) && block.HeaderHash == c.hash(block.Header)
+	return block.Header.ParentTr == c.Last_Block && block.Header.MerkleRoot == c.calculate_root(block.TransactionList) && block.HeaderHash == c.hash(block.Header)
 
 }
 
